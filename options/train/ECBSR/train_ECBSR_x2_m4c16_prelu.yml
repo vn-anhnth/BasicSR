@@ -8,67 +8,32 @@ manual_seed: 0
 # dataset and data loader settings
 datasets:
   train:
-    name: DIV2K
+    name: LicensePlate_Train
     type: PairedImageDataset
-    # It is strongly recommended to use lmdb for faster IO speed, especially for small networks
-    dataroot_gt: datasets/DF2K/DIV2K_train_HR_sub
-    dataroot_lq: datasets/DF2K/DIV2K_train_LR_bicubic_X2_sub
-    meta_info_file: basicsr/data/meta_info/meta_info_DIV2K800sub_GT.txt
-    filename_tmpl: '{}'
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
     io_backend:
-      type: disk
+      type: lmdb
 
-    gt_size: 128
-    use_hflip: true
-    use_rot: true
+    gt_size: 32
+    use_hflip: false
+    use_rot: false
     color: y
 
     # data loader
-    num_worker_per_gpu: 12
+    num_worker_per_gpu: 0
     batch_size_per_gpu: 32
-    dataset_enlarge_ratio: 10
+    dataset_enlarge_ratio: 1
     prefetch_mode: ~
 
-  # we use multiple validation datasets. The SR benchmark datasets can be download from: https://cv.snu.ac.kr/research/EDSR/benchmark.tar
   val:
-    name: Set5
+    name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Set5/HR
-    dataroot_lq: datasets/benchmark/Set5/LR_bicubic/X2
-    filename_tmpl: '{}x2'
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
     color: y
     io_backend:
-      type: disk
-
-  val_2:
-    name: Set14
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Set14/HR
-    dataroot_lq: datasets/benchmark/Set14/LR_bicubic/X2
-    filename_tmpl: '{}x2'
-    color: y
-    io_backend:
-      type: disk
-
-  val_3:
-    name: B100
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/B100/HR
-    dataroot_lq: datasets/benchmark/B100/LR_bicubic/X2
-    filename_tmpl: '{}x2'
-    color: y
-    io_backend:
-      type: disk
-
-  val_4:
-    name: Urban100
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Urban100/HR
-    dataroot_lq: datasets/benchmark/Urban100/LR_bicubic/X2
-    filename_tmpl: '{}x2'
-    color: y
-    io_backend:
-      type: disk
+      type: lmdb
 
 # network structures
 network_g:
@@ -98,10 +63,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [1600000]
-    gamma: 1
+    milestones: [300000]
+    gamma: 0.5
 
-  total_iter: 1600000
+  total_iter: 500000
   warmup_iter: -1  # no warm up
 
   # losses
@@ -112,7 +77,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1600  # the same as the original setting. # TODO: Can be larger
+  val_freq: !!float 2000
   save_img: false
   pbar: False
 
@@ -131,7 +96,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1600
+  save_checkpoint_freq: !!float 5000
   use_tb_logger: true
   wandb:
     project: ~

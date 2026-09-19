@@ -60,13 +60,36 @@ def paired_random_crop(img_gts, img_lqs, gt_patch_size, scale, gt_path=None):
         h_gt, w_gt = img_gts[0].shape[0:2]
     lq_patch_size = gt_patch_size // scale
 
-    if h_gt != h_lq * scale or w_gt != w_lq * scale:
-        raise ValueError(f'Scale mismatches. GT ({h_gt}, {w_gt}) is not {scale}x ',
-                         f'multiplication of LQ ({h_lq}, {w_lq}).')
+    # Đảm bảo GT luôn có kích thước là bội số chính xác của LQ * scale
+    # Trong các tập ảnh thực tế (như biển số), kích thước có thể là số lẻ (vd 39x116 -> LQ 19x58 -> 19*2=38 != 39)
+    target_h_gt = h_lq * scale
+    target_w_gt = w_lq * scale
+    if h_gt != target_h_gt or w_gt != target_w_gt:
+        if input_type == 'Tensor':
+            img_gts = [v[:, :, :target_h_gt, :target_w_gt] for v in img_gts]
+            h_gt, w_gt = img_gts[0].size()[-2:]
+        else:
+            img_gts = [v[:target_h_gt, :target_w_gt, ...] for v in img_gts]
+            h_gt, w_gt = img_gts[0].shape[0:2]
+
+    # Nếu ảnh LQ nhỏ hơn kích thước patch cần crop (ví dụ biển số quá nhỏ), tự động pad ảnh
     if h_lq < lq_patch_size or w_lq < lq_patch_size:
-        raise ValueError(f'LQ ({h_lq}, {w_lq}) is smaller than patch size '
-                         f'({lq_patch_size}, {lq_patch_size}). '
-                         f'Please remove {gt_path}.')
+        pad_h_lq = max(0, lq_patch_size - h_lq)
+        pad_w_lq = max(0, lq_patch_size - w_lq)
+        pad_h_gt = pad_h_lq * scale
+        pad_w_gt = pad_w_lq * scale
+
+        if input_type == 'Tensor':
+            import torch.nn.functional as F
+            img_lqs = [F.pad(v, (0, pad_w_lq, 0, pad_h_lq), mode='reflect') for v in img_lqs]
+            img_gts = [F.pad(v, (0, pad_w_gt, 0, pad_h_gt), mode='reflect') for v in img_gts]
+            h_lq, w_lq = img_lqs[0].size()[-2:]
+            h_gt, w_gt = img_gts[0].size()[-2:]
+        else:
+            img_lqs = [cv2.copyMakeBorder(v, 0, pad_h_lq, 0, pad_w_lq, cv2.BORDER_REFLECT_101) for v in img_lqs]
+            img_gts = [cv2.copyMakeBorder(v, 0, pad_h_gt, 0, pad_w_gt, cv2.BORDER_REFLECT_101) for v in img_gts]
+            h_lq, w_lq = img_lqs[0].shape[0:2]
+            h_gt, w_gt = img_gts[0].shape[0:2]
 
     # randomly choose top and left coordinates for lq patch
     top = random.randint(0, h_lq - lq_patch_size)
