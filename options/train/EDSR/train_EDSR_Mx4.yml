@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/lmdb/train_HR.lmdb
-    dataroot_lq: /content/lmdb/train_LR_x4.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -29,8 +29,8 @@ datasets:
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/lmdb/val_HR.lmdb
-    dataroot_lq: /content/lmdb/val_LR_x4.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -63,10 +63,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [20000, 32000]
+    milestones: [5000, 8000]
     gamma: 0.5
 
-  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs)
+  total_iter: 10000  # 100 epochs (24,468 images / batch 256 * 100 epochs ~ 9,600 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -77,21 +77,21 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1000
+  val_freq: !!float 2000
   save_img: false
   pbar: true
 
   metrics:
     psnr:
-      type: calculate_psnr_pt
+      type: calculate_psnr
       crop_border: 4
       test_y_channel: true
       better: higher
-    ssim:
-      type: calculate_ssim_pt
-      crop_border: 4
-      test_y_channel: true
-      better: higher
+    # ssim:
+    #   type: calculate_ssim
+    #   crop_border: 4
+    #   test_y_channel: true
+    #   better: higher
 
 # logging settings
 logger:
