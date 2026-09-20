@@ -87,11 +87,11 @@ val:
       crop_border: 2
       test_y_channel: false
       better: higher
-    ssim:
-      type: calculate_ssim
-      crop_border: 2
-      test_y_channel: false
-      better: higher
+    # ssim:
+    #   type: calculate_ssim
+    #   crop_border: 2
+    #   test_y_channel: false
+    #   better: higher
 
 # logging settings
 logger:

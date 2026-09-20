@@ -215,6 +215,7 @@ class SRModel(BaseModel):
             # tentative for out of GPU memory
             del self.lq
             del self.output
+            torch.cuda.empty_cache()
 
             if save_img:
                 if self.opt['is_train']:

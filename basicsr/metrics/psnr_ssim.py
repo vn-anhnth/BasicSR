@@ -119,12 +119,6 @@ def calculate_ssim(img, img2, crop_border, input_order='HWC', test_y_channel=Fal
         img = to_y_channel(img)
         img2 = to_y_channel(img2)
 
-    if torch.cuda.is_available():
-        # Chạy tăng tốc SSIM trực tiếp trên GPU CUDA (nhanh gấp 20-30 lần CPU)
-        t1 = torch.from_numpy(img).permute(2, 0, 1).unsqueeze(0).cuda() / 255.
-        t2 = torch.from_numpy(img2).permute(2, 0, 1).unsqueeze(0).cuda() / 255.
-        return calculate_ssim_pt(t1, t2, crop_border=0, test_y_channel=False).item()
-
     img = img.astype(np.float64)
     img2 = img2.astype(np.float64)
 
