@@ -24,7 +24,7 @@ datasets:
     use_rot: false
 
     # data loader (tối ưu Colab A100 GPU)
-    num_worker_per_gpu: 8
+    num_worker_per_gpu: 16  # Tối đa hóa nạp batch cho Colab
     batch_size_per_gpu: 64  # GAN + VGG Perceptual Loss tốn thêm VRAM
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda

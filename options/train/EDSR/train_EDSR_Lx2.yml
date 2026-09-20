@@ -20,7 +20,7 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 8
+    num_worker_per_gpu: 16  # Tối đa hóa hiệu năng GPU A100 & CPU đa nhân
     batch_size_per_gpu: 256  # Tối đa hóa hiệu năng GPU A100
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
