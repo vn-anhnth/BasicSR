@@ -205,17 +205,21 @@ class SRModel(BaseModel):
             self.test()
 
             visuals = self.get_current_visuals()
-            sr_img = tensor2img([visuals['result']])
-            metric_data['img'] = sr_img
-            if 'gt' in visuals:
-                gt_img = tensor2img([visuals['gt']])
-                metric_data['img2'] = gt_img
-                del self.gt
+            if save_img:
+                sr_img = tensor2img([visuals['result']])
+                metric_data['img'] = sr_img
+                if 'gt' in visuals:
+                    gt_img = tensor2img([visuals['gt']])
+                    metric_data['img2'] = gt_img
+            else:
+                metric_data['img'] = visuals['result']
+                if 'gt' in visuals:
+                    metric_data['img2'] = visuals['gt']
 
-            # tentative for out of GPU memory
+            if 'gt' in visuals:
+                del self.gt
             del self.lq
             del self.output
-            torch.cuda.empty_cache()
 
             if save_img:
                 if self.opt['is_train']:
