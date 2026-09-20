@@ -30,7 +30,10 @@ def mkdir_and_rename(path):
     if osp.exists(path):
         new_name = path + '_archived_' + get_time_str()
         print(f'Path already exists. Rename it to {new_name}', flush=True)
-        os.rename(path, new_name)
+        try:
+            os.rename(path, new_name)
+        except (PermissionError, OSError) as e:
+            print(f'Warning: Cannot rename {path} due to Windows file lock ({e}). Continuing in existing directory.', flush=True)
     os.makedirs(path, exist_ok=True)
 
 

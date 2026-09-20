@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
     io_backend:
       type: lmdb
 
@@ -21,17 +21,17 @@ datasets:
     color: y
 
     # data loader
-    num_worker_per_gpu: 8
-    batch_size_per_gpu: 256
+    num_worker_per_gpu: 0  # Trên Windows dùng 0 để tránh lỗi WinError 1455 (Paging file)
+    batch_size_per_gpu: 128  # RTX 3060 12GB (ECBSR rất nhẹ)
     dataset_enlarge_ratio: 1
-    prefetch_mode: cuda
+    prefetch_mode: ~
     pin_memory: true
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
     color: y
     io_backend:
       type: lmdb
@@ -64,10 +64,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [5000, 8000]
+    milestones: [10000, 16000]
     gamma: 0.5
 
-  total_iter: 10000  # 100 epochs (24,468 images / batch 256 * 100 epochs ~ 9,600 iters)
+  total_iter: 20000  # 100 epochs (24,468 images / batch 128 * 100 epochs ~ 19,100 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -78,26 +78,26 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1000
+  val_freq: !!float 2000  # 10 epochs (191 iters/epoch * 10 ~ 1910 iters)
   save_img: false
   pbar: true
 
   metrics:
     psnr:
-      type: calculate_psnr
+      type: calculate_psnr_pt
       crop_border: 2
       test_y_channel: true
       better: higher  # the higher, the better. Default: higher
-    # ssim:
-    #   type: calculate_ssim
-    #   crop_border: 2
-    #   test_y_channel: true
-    #   better: higher  # the higher, the better. Default: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 2
+      test_y_channel: true
+      better: higher  # the higher, the better. Default: higher
 
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1000
+  save_checkpoint_freq: !!float 2000
   use_tb_logger: true
   wandb:
     project: license_plate_sr
@@ -108,7 +108,6 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
-
 
 # command
 # python basicsr/train.py -opt options/train/ECBSR/train_ECBSR_x2_m4c16_prelu.yml

@@ -205,18 +205,8 @@ class SRModel(BaseModel):
             self.test()
 
             visuals = self.get_current_visuals()
-            sr_img = tensor2img([visuals['result']])
-            metric_data['img'] = sr_img
-            if 'gt' in visuals:
-                gt_img = tensor2img([visuals['gt']])
-                metric_data['img2'] = gt_img
-
-            if 'gt' in visuals:
-                del self.gt
-            del self.lq
-            del self.output
-
             if save_img:
+                sr_img = tensor2img([visuals['result']])
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
@@ -232,7 +222,23 @@ class SRModel(BaseModel):
             if with_metrics:
                 # calculate metrics
                 for name, opt_ in self.opt['val']['metrics'].items():
-                    self.metric_results[name] += calculate_metric(metric_data, opt_)
+                    m_type = opt_.get('type', '')
+                    if m_type.endswith('_pt'):
+                        res_pt = calculate_metric({'img': self.output, 'img2': self.gt}, opt_)
+                        if isinstance(res_pt, torch.Tensor):
+                            res_pt = res_pt.mean().item()
+                        self.metric_results[name] += res_pt
+                    else:
+                        if 'img' not in metric_data or metric_data['img'] is None:
+                            metric_data['img'] = tensor2img([visuals['result']])
+                            if 'gt' in visuals:
+                                metric_data['img2'] = tensor2img([visuals['gt']])
+                        self.metric_results[name] += calculate_metric(metric_data, opt_)
+
+            if 'gt' in visuals:
+                del self.gt
+            del self.lq
+            del self.output
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')

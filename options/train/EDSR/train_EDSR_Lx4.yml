@@ -83,15 +83,15 @@ val:
 
   metrics:
     psnr:
-      type: calculate_psnr
+      type: calculate_psnr_pt
       crop_border: 4
       test_y_channel: true
       better: higher
-    # ssim:
-    #   type: calculate_ssim
-    #   crop_border: 4
-    #   test_y_channel: true
-    #   better: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
 
 # logging settings
 logger:
