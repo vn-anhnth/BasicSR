@@ -107,7 +107,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 3800  # 10 epochs (382 iters/epoch * 10)
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
   save_img: false
   pbar: true
 
@@ -126,7 +126,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800
+  save_checkpoint_freq: !!float 3800  # Luu checkpoint dinh ky moi 10 epochs (3,800 iters)
   use_tb_logger: true
   wandb:
     project: license_plate_sr
