@@ -25,6 +25,7 @@ datasets:
     batch_size_per_gpu: 128
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
+    pin_memory: true
 
   val:
     name: LicensePlate_Val
