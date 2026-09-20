@@ -129,12 +129,12 @@ def evaluate_single_model(
 
             im_gt_u8 = tensor2img(img2tensor(im_gt, bgr2rgb=True, float32=True))
 
-            # 1. Tính PSNR
-            cur_psnr = calculate_psnr(im_sr, im_gt_u8, crop_border=scale, test_y_channel=False)
+            # 1. Tính PSNR (trên kênh Y - chuẩn benchmark quốc tế)
+            cur_psnr = calculate_psnr(im_sr, im_gt_u8, crop_border=scale, test_y_channel=True)
             psnr_list.append(cur_psnr)
 
-            # 2. Tính SSIM
-            cur_ssim = calculate_ssim(im_sr, im_gt_u8, crop_border=scale, test_y_channel=False)
+            # 2. Tính SSIM (trên kênh Y - chuẩn benchmark quốc tế)
+            cur_ssim = calculate_ssim(im_sr, im_gt_u8, crop_border=scale, test_y_channel=True)
             ssim_list.append(cur_ssim)
 
             # 3. Tính LPIPS

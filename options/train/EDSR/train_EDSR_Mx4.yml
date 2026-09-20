@@ -29,8 +29,8 @@ datasets:
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    dataroot_gt: /content/lmdb/val_HR.lmdb
+    dataroot_lq: /content/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -42,7 +42,7 @@ network_g:
   num_feat: 64
   num_block: 16
   upscale: 4
-  res_scale: 1
+  res_scale: 1.0
   img_range: 255.
   rgb_mean: [0.4488, 0.4371, 0.4040]
 
@@ -57,7 +57,7 @@ train:
   ema_decay: 0.999
   optim_g:
     type: Adam
-    lr: !!float 2e-4
+    lr: !!float 1e-4
     weight_decay: 0
     betas: [0.9, 0.99]
 
@@ -66,7 +66,7 @@ train:
     milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 40000  # 100 epochs (24,468 images / batch 64 * 100 epochs)
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -85,13 +85,13 @@ val:
     psnr:
       type: calculate_psnr
       crop_border: 4
-      test_y_channel: false
+      test_y_channel: true
       better: higher
-    # ssim:
-    #   type: calculate_ssim
-    #   crop_border: 4
-    #   test_y_channel: false
-    #   better: higher
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: true
+      better: higher
 
 # logging settings
 logger:
