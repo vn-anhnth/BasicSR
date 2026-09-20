@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -20,16 +20,16 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 0
-    batch_size_per_gpu: 32
+    num_worker_per_gpu: 8
+    batch_size_per_gpu: 128
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -55,16 +55,16 @@ train:
   ema_decay: 0
   optim_g:
     type: Adam
-    lr: !!float 5e-4
+    lr: !!float 1e-3
     weight_decay: 0
     betas: [0.9, 0.99]
 
   scheduler:
     type: MultiStepLR
-    milestones: [300000]
+    milestones: [10000, 16000]
     gamma: 0.5
 
-  total_iter: 500000
+  total_iter: 20000  # 100 epochs (24,468 images / batch 128 * 100 epochs)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -75,7 +75,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 2000
+  val_freq: !!float 500
   save_img: false
   pbar: False
 
@@ -94,10 +94,11 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 5000
+  save_checkpoint_freq: !!float 1000
   use_tb_logger: true
   wandb:
-    project: ~
+    project: license_plate_sr
+    entity: anhlone3
     resume_id: ~
 
 # dist training settings

@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
     io_backend:
       type: lmdb
 
@@ -20,16 +20,16 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 0
-    batch_size_per_gpu: 8  # Lx2 mô hình lớn 256 feats 32 blocks nên đặt batch size 8 để an toàn VRAM
+    num_worker_per_gpu: 8
+    batch_size_per_gpu: 32  # Lx2 mô hình 256 feats 32 blocks, chạy batch 32 trên A100 cực kỳ tối ưu
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
     io_backend:
       type: lmdb
 
@@ -56,16 +56,16 @@ train:
   ema_decay: 0.999
   optim_g:
     type: Adam
-    lr: !!float 1e-4
+    lr: !!float 2e-4
     weight_decay: 0
     betas: [0.9, 0.99]
 
   scheduler:
     type: MultiStepLR
-    milestones: [100000, 200000]
+    milestones: [40000, 65000]
     gamma: 0.5
 
-  total_iter: 300000
+  total_iter: 76000  # 100 epochs (24,468 images / batch 32 * 100 epochs)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -76,7 +76,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 2000
+  val_freq: !!float 1000
   save_img: false
 
   metrics:
@@ -84,14 +84,21 @@ val:
       type: calculate_psnr
       crop_border: 2
       test_y_channel: false
+      better: higher
+    ssim:
+      type: calculate_ssim
+      crop_border: 2
+      test_y_channel: false
+      better: higher
 
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 5000
+  save_checkpoint_freq: !!float 2000
   use_tb_logger: true
   wandb:
-    project: ~
+    project: license_plate_sr
+    entity: anhlone3
     resume_id: ~
 
 # dist training settings
