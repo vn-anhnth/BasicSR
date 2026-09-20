@@ -83,7 +83,7 @@ def load_resume_state(opt):
         resume_state = None
     else:
         device_id = torch.cuda.current_device()
-        resume_state = torch.load(resume_state_path, map_location=lambda storage, loc: storage.cuda(device_id))
+        resume_state = torch.load(resume_state_path, map_location=lambda storage, loc: storage.cuda(device_id), weights_only=False)
         check_resume(opt, resume_state['iter'])
     return resume_state
 
