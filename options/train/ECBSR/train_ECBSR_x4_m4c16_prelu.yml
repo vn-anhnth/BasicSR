@@ -80,7 +80,7 @@ train:
 val:
   val_freq: !!float 500
   save_img: false
-  pbar: False
+  pbar: true
 
   metrics:
     psnr:
