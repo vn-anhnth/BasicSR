@@ -107,3 +107,6 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
+
+# command
+# python basicsr/train.py -opt options/train/SRResNet_SRGAN/train_MSRResNet_x4.yml

@@ -119,15 +119,29 @@ class SRModel(BaseModel):
             self.model_ema(decay=self.ema_decay)
 
     def test(self):
-        if hasattr(self, 'net_g_ema'):
-            self.net_g_ema.eval()
-            with torch.no_grad():
-                self.output = self.net_g_ema(self.lq)
+        # Pad to multiple of 2 or 4 if net_g uses pixel_unshuffle (e.g. RRDBNet scale 2 or 1)
+        scale = self.opt.get('scale', 1)
+        _, _, h, w = self.lq.size()
+        pad_h = (scale - h % scale) % scale
+        pad_w = (scale - w % scale) % scale
+        if pad_h > 0 or pad_w > 0:
+            lq = F.pad(self.lq, (0, pad_w, 0, pad_h), mode='replicate')
         else:
-            self.net_g.eval()
-            with torch.no_grad():
-                self.output = self.net_g(self.lq)
-            self.net_g.train()
+            lq = self.lq
+
+        net_g = self.net_g_ema if hasattr(self, 'net_g_ema') else self.net_g
+        net_g.eval()
+        with torch.no_grad():
+            output = net_g(lq)
+        if not hasattr(self, 'net_g_ema'):
+            net_g.train()
+
+        # Crop back to original scale size
+        if pad_h > 0 or pad_w > 0:
+            out_h, out_w = h * scale, w * scale
+            self.output = output[:, :, :out_h, :out_w]
+        else:
+            self.output = output
 
     def test_selfensemble(self):
         # TODO: to be tested

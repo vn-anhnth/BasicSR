@@ -14,8 +14,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -23,18 +23,18 @@ datasets:
     use_hflip: false
     use_rot: false
 
-    # data loader (tối ưu Colab A100 GPU)
-    num_worker_per_gpu: 16  # Tối đa hóa nạp batch cho Colab
-    batch_size_per_gpu: 64  # GAN + VGG Perceptual Loss tốn thêm VRAM
+    # data loader
+    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
+    batch_size_per_gpu: 64  # RTX 3060 12GB
     dataset_enlarge_ratio: 1
-    prefetch_mode: cuda
+    prefetch_mode: ~
     pin_memory: true
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -107,7 +107,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  val_freq: !!float 3800  # Validate moi 10 epochs (3,800 iters)
   save_img: false
   pbar: true
 
