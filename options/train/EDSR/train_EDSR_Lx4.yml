@@ -2,7 +2,7 @@
 name: 206_EDSR_Lx4_LicensePlate_pretrained
 model_type: SRModel
 scale: 4
-num_gpu: 1  # set num_gpu: 0 for cpu mode
+num_gpu: 2  # 2x Tesla T4 GPUs tren Kaggle (DDP)
 manual_seed: 10
 
 # dataset and data loader settings
@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
+    dataroot_gt: /kaggle/working/data/train_HR.lmdb
+    dataroot_lq: /kaggle/working/data/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -20,8 +20,8 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 16  # Tối đa hóa hiệu năng GPU A100 & CPU đa nhân
-    batch_size_per_gpu: 64
+    num_worker_per_gpu: 2  # Kaggle có 4 vCPU -> 2 workers per GPU
+    batch_size_per_gpu: 64  # 64 mỗi GPU -> Tổng effective batch = 128
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
     pin_memory: true
@@ -29,8 +29,8 @@ datasets:
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    dataroot_gt: /kaggle/working/data/val_HR.lmdb
+    dataroot_lq: /kaggle/working/data/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -107,3 +107,7 @@ logger:
 dist_params:
   backend: nccl
   port: 29500
+
+# command
+# Train 2 GPU tren Kaggle bang torchrun (DDP):
+# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/EDSR/train_EDSR_Lx4.yml --launcher pytorch
