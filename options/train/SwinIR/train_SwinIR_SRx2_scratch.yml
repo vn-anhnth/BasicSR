@@ -51,8 +51,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/001_classicalSR_DF2K_s64w8_SwinIR-M_x2.pth
-  param_key_g: params
+  pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
 
