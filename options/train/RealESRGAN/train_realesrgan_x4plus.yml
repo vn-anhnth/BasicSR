@@ -38,7 +38,7 @@ datasets:
   train:
     name: LicensePlate_Train
     type: RealESRGANDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
     io_backend:
       type: lmdb
 
@@ -66,16 +66,17 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 64  # RTX 3060 12GB
+    num_worker_per_gpu: 16  # Tối đa hóa hiệu năng GPU A100 & CPU đa nhân trên Colab
+    batch_size_per_gpu: 64
     dataset_enlarge_ratio: 1
-    prefetch_mode: ~
+    prefetch_mode: cuda
+    pin_memory: true
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -154,7 +155,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 3800  # Validate moi 10 epochs (3,800 iters)
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
   save_img: false
   pbar: true
 
