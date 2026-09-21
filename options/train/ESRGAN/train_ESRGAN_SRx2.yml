@@ -1,7 +1,7 @@
 # general settings
-name: 502_RRDBNet_PSNR_x4_LicensePlate
-model_type: SRModel
-scale: 4
+name: 503_ESRGAN_SRx2_LicensePlate
+model_type: ESRGANModel
+scale: 2
 num_gpu: 2  # 2x Tesla T4 GPUs tren Kaggle (DDP)
 manual_seed: 10
 
@@ -11,7 +11,7 @@ datasets:
     name: LicensePlate_Train
     type: PairedImageDataset
     dataroot_gt: /kaggle/working/data/train_HR.lmdb
-    dataroot_lq: /kaggle/working/data/train_LR_x4.lmdb
+    dataroot_lq: /kaggle/working/data/train_LR_x2.lmdb
     io_backend:
       type: lmdb
 
@@ -21,7 +21,7 @@ datasets:
 
     # data loader
     num_worker_per_gpu: 2  # Kaggle có 4 vCPU -> 2 workers per GPU
-    batch_size_per_gpu: 64  # 64 mỗi GPU -> Tổng effective batch = 128
+    batch_size_per_gpu: 16  # GAN tốn nhiều VRAM hơn cho Discriminator + VGG19
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
     pin_memory: true
@@ -30,7 +30,7 @@ datasets:
     name: LicensePlate_Val
     type: PairedImageDataset
     dataroot_gt: /kaggle/working/data/val_HR.lmdb
-    dataroot_lq: /kaggle/working/data/val_LR_x4.lmdb
+    dataroot_lq: /kaggle/working/data/val_LR_x2.lmdb
     io_backend:
       type: lmdb
 
@@ -42,11 +42,16 @@ network_g:
   num_feat: 64
   num_block: 23
   num_grow_ch: 32
-  scale: 4
+  scale: 2
+
+network_d:
+  type: VGGStyleDiscriminator
+  num_in_ch: 3
+  num_feat: 64
 
 # path
 path:
-  pretrain_network_g: ~
+  pretrain_network_g: experiments/501_RRDBNet_PSNR_x2_LicensePlate/models/net_g_latest.pth
   strict_load_g: true
   resume_state: ~
 
@@ -55,7 +60,12 @@ train:
   ema_decay: 0.999
   optim_g:
     type: Adam
-    lr: !!float 2e-4
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
     weight_decay: 0
     betas: [0.9, 0.99]
 
@@ -64,14 +74,33 @@ train:
     milestones: [10000, 16000]
     gamma: 0.5
 
-  total_iter: 19100  # 100 epochs tren 2 GPUs (24,468 images / batch 128 * 100 epochs ~ 19,100 iters)
+  total_iter: 19100
   warmup_iter: -1  # no warm up
 
   # losses
   pixel_opt:
     type: L1Loss
-    loss_weight: 1.0
+    loss_weight: !!float 1e-2
     reduction: mean
+  perceptual_opt:
+    type: PerceptualLoss
+    layer_weights:
+      'conv5_4': 1  # before relu
+    vgg_type: vgg19
+    use_input_norm: true
+    range_norm: false
+    perceptual_weight: 1.0
+    style_weight: 0
+    criterion: l1
+  gan_opt:
+    type: GANLoss
+    gan_type: vanilla
+    real_label_val: 1.0
+    fake_label_val: 0.0
+    loss_weight: !!float 5e-3
+
+  net_d_iters: 1
+  net_d_init_iters: 0
 
 # validation settings
 val:
@@ -82,19 +111,19 @@ val:
   metrics:
     psnr:
       type: calculate_psnr_pt
-      crop_border: 4
+      crop_border: 2
       test_y_channel: true
       better: higher
     ssim:
       type: calculate_ssim_pt
-      crop_border: 4
+      crop_border: 2
       test_y_channel: true
       better: higher
 
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1910  # Luu checkpoint moi 10 epochs (1,910 iters)
+  save_checkpoint_freq: !!float 1910
   use_tb_logger: true
   wandb:
     project: license_plate_sr
@@ -108,4 +137,4 @@ dist_params:
 
 # command
 # Train 2 GPU tren Kaggle bang torchrun (DDP):
-# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/ESRGAN/train_RRDBNet_PSNR_x4.yml --launcher pytorch
+# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/ESRGAN/train_ESRGAN_SRx2.yml --launcher pytorch
