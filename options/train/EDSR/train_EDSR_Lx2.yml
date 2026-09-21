@@ -63,10 +63,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [20000, 32000]
+    milestones: [10000, 16000]
     gamma: 0.5
 
-  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,200 iters)
+  total_iter: 19100  # 100 epochs tren 2 GPUs (24,468 images / batch 128 * 100 epochs ~ 19,100 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -96,7 +96,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint dinh ky moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 1910  # Luu checkpoint dinh ky moi 10 epochs (1,910 iters)
   use_tb_logger: true
   wandb:
     project: license_plate_sr

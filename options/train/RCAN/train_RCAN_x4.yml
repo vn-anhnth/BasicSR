@@ -1,5 +1,5 @@
 # general settings
-name: 206_EDSR_Lx4_LicensePlate_pretrained
+name: 202_RCAN_x4_LicensePlate
 model_type: SRModel
 scale: 4
 num_gpu: 2  # 2x Tesla T4 GPUs tren Kaggle (DDP)
@@ -36,13 +36,15 @@ datasets:
 
 # network structures
 network_g:
-  type: EDSR
+  type: RCAN
   num_in_ch: 3
   num_out_ch: 3
-  num_feat: 256
-  num_block: 32
+  num_feat: 64
+  num_group: 10
+  num_block: 20
+  squeeze_factor: 16
   upscale: 4
-  res_scale: 0.1
+  res_scale: 1
   img_range: 255.
   rgb_mean: [0.4488, 0.4371, 0.4040]
 
@@ -57,7 +59,7 @@ train:
   ema_decay: 0.999
   optim_g:
     type: Adam
-    lr: !!float 2e-4
+    lr: !!float 1e-4
     weight_decay: 0
     betas: [0.9, 0.99]
 
@@ -96,7 +98,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1910  # Luu checkpoint dinh ky moi 10 epochs (1,910 iters)
+  save_checkpoint_freq: !!float 1910  # Luu checkpoint moi 10 epochs (1,910 iters)
   use_tb_logger: true
   wandb:
     project: license_plate_sr
@@ -110,4 +112,4 @@ dist_params:
 
 # command
 # Train 2 GPU tren Kaggle bang torchrun (DDP):
-# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/EDSR/train_EDSR_Lx4.yml --launcher pytorch
+# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/RCAN/train_RCAN_x4.yml --launcher pytorch
