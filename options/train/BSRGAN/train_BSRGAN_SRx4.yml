@@ -1,73 +1,27 @@
 # general settings
-name: 009_RealESRGANx4plus_LicensePlate
-model_type: RealESRGANModel
+name: 903_BSRGAN_SRx4_LicensePlate
+model_type: SRGANModel
 scale: 4
 num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
-# ----------------- options for synthesizing training data in RealESRGANModel ----------------- #
-# USM the ground-truth
-l1_gt_usm: True
-percep_gt_usm: True
-gan_gt_usm: False
-
-# the first degradation process
-resize_prob: [0.2, 0.7, 0.1]  # up, down, keep
-resize_range: [0.6, 1.2]
-gaussian_noise_prob: 0.5
-noise_range: [1, 30]
-poisson_scale_range: [0.05, 3]
-gray_noise_prob: 0.4
-jpeg_range: [30, 95]
-
-# the second degradation process
-second_blur_prob: 0.8
-resize_prob2: [0.3, 0.4, 0.3]  # up, down, keep
-resize_range2: [0.7, 1.1]
-gaussian_noise_prob2: 0.5
-noise_range2: [1, 25]
-poisson_scale_range2: [0.05, 2.5]
-gray_noise_prob2: 0.4
-jpeg_range2: [30, 95]
-
-gt_size: 48
-queue_size: 192
-
 # dataset and data loader settings
 datasets:
   train:
-    name: LicensePlate_Train
-    type: RealESRGANDataset
+    name: LicensePlate_BSRGAN_Train
+    type: BSRGANDataset
     dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
     io_backend:
       type: lmdb
 
-    crop_pad_size: 96
-    blur_kernel_size: 15
-    kernel_list: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
-    kernel_prob: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
-    sinc_prob: 0.1
-    blur_sigma: [0.2, 2.0]
-    betag_range: [0.5, 4]
-    betap_range: [1, 2]
-
-    blur_kernel_size2: 15
-    kernel_list2: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
-    kernel_prob2: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
-    sinc_prob2: 0.1
-    blur_sigma2: [0.2, 1.5]
-    betag_range2: [0.5, 4]
-    betap_range2: [1, 2]
-
-    final_sinc_prob: 0.8
-
+    scale: 4
     gt_size: 48
     use_hflip: false
     use_rot: false
 
     # data loader
     num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 16  # RRDBNet 23 blocks + UNetDiscriminatorSN trên RTX 3060 12GB
+    batch_size_per_gpu: 16  # BSRGAN (RRDBNet 23 blocks) nặng hơn nhẹ model khác
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
     pin_memory: true
@@ -82,13 +36,13 @@ datasets:
 
 # network structures
 network_g:
-  type: RRDBNet
-  num_in_ch: 3
-  num_out_ch: 3
-  num_feat: 64
-  num_block: 23
-  num_grow_ch: 32
-  scale: 4
+  type: BSRGANNet
+  in_nc: 3
+  out_nc: 3
+  nf: 64
+  nb: 23
+  gc: 32
+  sf: 4
 
 network_d:
   type: UNetDiscriminatorSN
@@ -98,8 +52,8 @@ network_d:
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/RealESRGAN/RealESRGAN_x4plus.pth
-  param_key_g: params_ema
+  pretrain_network_g: experiments/pretrained_models/BSRGAN/BSRGAN.pth
+  param_key_g: ~
   strict_load_g: true
   resume_state: ~
 
@@ -122,7 +76,7 @@ train:
     milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,200 iters)
+  total_iter: 38000  # 100 epochs (24,468 images / batch 16 ~ 1,530 iters/epoch * 25 ~ 38,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -130,6 +84,7 @@ train:
     type: L1Loss
     loss_weight: 1.0
     reduction: mean
+  # perceptual loss (VGG19)
   perceptual_opt:
     type: PerceptualLoss
     layer_weights:
@@ -144,6 +99,7 @@ train:
     style_weight: 0
     range_norm: false
     criterion: l1
+  # gan loss
   gan_opt:
     type: GANLoss
     gan_type: vanilla
@@ -156,7 +112,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  val_freq: !!float 3800  # Validate moi 3800 iters
   save_img: false
   pbar: true
 
@@ -175,7 +131,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 3800 iters
   use_tb_logger: true
   wandb:
     project: license_plate_sr
@@ -188,4 +144,4 @@ dist_params:
   port: 29500
 
 # command
-# python basicsr/train.py -opt options/train/RealESRGAN/train_realesrgan_x4plus.yml
+# python basicsr/train.py -opt options/train/BSRGAN/train_BSRGAN_SRx4.yml
