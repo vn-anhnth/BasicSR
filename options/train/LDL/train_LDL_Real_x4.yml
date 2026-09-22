@@ -66,7 +66,7 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 16  # Tối đa hóa hiệu năng CPU đa luồng trên Colab
+    num_worker_per_gpu: 8  # Tối đa hóa hiệu năng CPU đa luồng trên Colab
     batch_size_per_gpu: 64
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda

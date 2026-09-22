@@ -20,7 +20,7 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 16  # Tối đa hóa CPU đa luồng trên Colab
+    num_worker_per_gpu: 8  # Tối đa hóa CPU đa luồng trên Colab
     batch_size_per_gpu: 32  # HAT dùng nhiều VRAM hơn SwinIR
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
