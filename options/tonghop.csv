@@ -1,0 +1,15 @@
+Model,Where (x2),Where (x4),Needed Model (x2),Needed Model (x4)
+MSRGAN,F:\license_plate_dataset\license_plate_sr\models\005_MSRGAN_x2_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\004_MSRGAN_x4_LicensePlate,001_MSRResNet_x4_LicensePlate,002_MSRResNet_x2_LicensePlate
+ESRGAN,,,,502_RRDBNet_PSNR_x4_LicensePlate
+RealESRGAN,F:\license_plate_dataset\license_plate_sr\models\008_RealESRGANx2plus_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\009_RealESRGANx4plus_LicensePlate,006_RealESRNetx2plus_LicensePlate,007_RealESRNetx4plus_LicensePlate
+LDL,,F:\license_plate_dataset\license_plate_sr\models\010_LDL_Real_x4_LicensePlate,006_RealESRNetx2plus_LicensePlate,007_RealESRNetx4plus_LicensePlate
+ECBSR,F:\license_plate_dataset\license_plate_sr\models\101_train_ECBSR_x2_m4c16_prelu,F:\license_plate_dataset\license_plate_sr\models\102_train_ECBSR_x4_m4c16_prelu
+EDSR (M),F:\license_plate_dataset\license_plate_sr\models\201_EDSR_Mx2_LicensePlate_pretrained,F:\license_plate_dataset\license_plate_sr\models\203_EDSR_Mx4_LicensePlate_pretrained
+EDSR (L),F:\license_plate_dataset\license_plate_sr\models\204_EDSR_Lx2_LicensePlate_pretrained,F:\license_plate_dataset\license_plate_sr\models\206_EDSR_Lx4_LicensePlate_pretrained,,
+RCAN,,F:\license_plate_dataset\license_plate_sr\models\202_RCAN_x4_LicensePlate
+RFDN,F:\license_plate_dataset\license_plate_sr\models\701_RFDN_SRx2_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\702_RFDN_SRx4_LicensePlate
+IMDN,F:\license_plate_dataset\license_plate_sr\models\801_IMDN_SRx2_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\802_IMDN_SRx4_LicensePlate
+LatticeNet,F:\license_plate_dataset\license_plate_sr\models\901_LatticeNet_SRx2_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\902_LatticeNet_SRx4_LicensePlate
+SwinIR,F:\license_plate_dataset\license_plate_sr\models\301_SwinIR_SRx2_LicensePlate,F:\license_plate_dataset\license_plate_sr\models\302_SwinIR_SRx4_LicensePlate
+SwinIR-Light,,,,
+OmniSR,,,,

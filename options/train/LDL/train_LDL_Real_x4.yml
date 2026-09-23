@@ -99,10 +99,11 @@ network_d:
 # path
 path:
   # use the pre-trained Real-ESRNet model
-  pretrain_network_g: /content/BasicSR/experiments/007_RealESRNetx4plus_LicensePlate/models/net_g_latest.pth
+  pretrain_network_g: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments/007_RealESRNetx4plus_LicensePlate/models/net_g_latest.pth
   param_key_g: params_ema
   strict_load_g: true
   resume_state: ~
+  experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
 
 # training settings
 train:

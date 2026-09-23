@@ -53,6 +53,7 @@ path:
   pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
+  experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
 
 # training settings
 train:
