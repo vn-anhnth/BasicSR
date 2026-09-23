@@ -81,7 +81,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 3800  # Validate moi 10 epochs (3,800 iters)
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
   save_img: false
   pbar: true
 
