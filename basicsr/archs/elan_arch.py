@@ -16,14 +16,15 @@ class ShiftConv2d(nn.Module):
         self.inp_channels = inp_channels
         self.out_channels = out_channels
 
-        self.weight = nn.Parameter(torch.zeros(inp_channels, 1, 3, 3), requires_grad=False)
+        weight = torch.zeros(inp_channels, 1, 3, 3)
         self.n_div = 5
         g = inp_channels // self.n_div
-        self.weight[0 * g:1 * g, 0, 1, 2] = 1.0  # left
-        self.weight[1 * g:2 * g, 0, 1, 0] = 1.0  # right
-        self.weight[2 * g:3 * g, 0, 2, 1] = 1.0  # up
-        self.weight[3 * g:4 * g, 0, 0, 1] = 1.0  # down
-        self.weight[4 * g:, 0, 1, 1] = 1.0        # identity
+        weight[0 * g:1 * g, 0, 1, 2] = 1.0  # left
+        weight[1 * g:2 * g, 0, 1, 0] = 1.0  # right
+        weight[2 * g:3 * g, 0, 2, 1] = 1.0  # up
+        weight[3 * g:4 * g, 0, 0, 1] = 1.0  # down
+        weight[4 * g:, 0, 1, 1] = 1.0        # identity
+        self.register_buffer('weight', weight)
 
         self.conv1x1 = nn.Conv2d(inp_channels, out_channels, 1)
 
