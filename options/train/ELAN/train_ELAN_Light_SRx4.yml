@@ -96,8 +96,14 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # 10 epochs lưu 1 lần
+  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
   use_tb_logger: true
   wandb:
     project: license_plate_sr
+    entity: anhlone3
     resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
