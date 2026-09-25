@@ -67,7 +67,7 @@ datasets:
 
     # data loader
     num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 16  # RRDBNet 23 blocks + UNetDiscriminatorSN trên RTX 3060 12GB
+    batch_size_per_gpu: 64  # RRDBNet 23 blocks + UNetDiscriminatorSN trên RTX 3060 12GB
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
     pin_memory: true
@@ -122,7 +122,7 @@ train:
     milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,200 iters)
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -175,7 +175,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 3800
   use_tb_logger: true
   wandb:
     project: license_plate_sr

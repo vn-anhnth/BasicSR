@@ -21,7 +21,7 @@ datasets:
 
     # data loader
     num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 128  # RTX 3060 12GB (ECBSR rất nhẹ)
+    batch_size_per_gpu: 64  # RTX 3060 12GB (ECBSR rất nhẹ)
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
     pin_memory: true
@@ -62,10 +62,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [10000, 16000]
+    milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 20000  # 100 epochs (24,468 images / batch 128 * 100 epochs ~ 19,100 iters)
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -76,7 +76,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 2000  # 10 epochs (191 iters/epoch * 10)
+  val_freq: !!float 3800
   save_img: false
   pbar: true
 
@@ -95,7 +95,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 2000
+  save_checkpoint_freq: !!float 3800
   use_tb_logger: true
   wandb:
     project: license_plate_sr

@@ -21,7 +21,7 @@ datasets:
 
     # data loader
     num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 16  # RTX 3060 12GB
+    batch_size_per_gpu: 64  # RTX 3060 12GB
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
     pin_memory: true
@@ -76,7 +76,7 @@ train:
     milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 38000
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
