@@ -109,10 +109,9 @@ class RealESRGANDataset(data.Dataset):
         # -------------------- Do augmentation for training: flip, rotation -------------------- #
         img_gt = augment(img_gt, self.opt['use_hflip'], self.opt['use_rot'])
 
-        # crop or pad to 400
-        # TODO: 400 is hard-coded. You may change it accordingly
+        # crop or pad to crop_pad_size (default 400, or custom like 48 for license plates)
         h, w = img_gt.shape[0:2]
-        crop_pad_size = 400
+        crop_pad_size = self.opt.get('crop_pad_size', 400)
         # pad
         if h < crop_pad_size or w < crop_pad_size:
             pad_h = max(0, crop_pad_size - h)

@@ -12,7 +12,13 @@ __all__ = ['build_network']
 arch_folder = osp.dirname(osp.abspath(__file__))
 arch_filenames = [osp.splitext(osp.basename(v))[0] for v in scandir(arch_folder) if v.endswith('_arch.py')]
 # import all the arch modules
-_arch_modules = [importlib.import_module(f'basicsr.archs.{file_name}') for file_name in arch_filenames]
+_arch_modules = []
+for file_name in arch_filenames:
+    try:
+        _arch_modules.append(importlib.import_module(f'basicsr.archs.{file_name}'))
+    except ImportError as e:
+        # Some architectures require extra optional packages (e.g. einops for DAT/ELAN)
+        pass
 
 
 def build_network(opt):

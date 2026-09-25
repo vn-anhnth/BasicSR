@@ -184,16 +184,22 @@ def paired_paths_from_meta_info_file(folders, keys, meta_info_file, filename_tmp
     input_folder, gt_folder = folders
     input_key, gt_key = keys
 
-    with open(meta_info_file, 'r') as fin:
-        gt_names = [line.strip().split(' ')[0] for line in fin]
-
     paths = []
-    for gt_name in gt_names:
-        basename, ext = osp.splitext(osp.basename(gt_name))
-        input_name = f'{filename_tmpl.format(basename)}{ext}'
-        input_path = osp.join(input_folder, input_name)
-        gt_path = osp.join(gt_folder, gt_name)
-        paths.append(dict([(f'{input_key}_path', input_path), (f'{gt_key}_path', gt_path)]))
+    with open(meta_info_file, 'r') as fin:
+        for line in fin:
+            parts = line.strip().split(' ')
+            if len(parts) >= 2 and not parts[1].startswith('('):
+                # Format: lq_rel_path gt_rel_path
+                lq_rel, gt_rel = parts[0], parts[1]
+                input_path = osp.join(input_folder, lq_rel)
+                gt_path = osp.join(gt_folder, gt_rel)
+            else:
+                gt_name = parts[0]
+                basename, ext = osp.splitext(osp.basename(gt_name))
+                input_name = f'{filename_tmpl.format(basename)}{ext}'
+                input_path = osp.join(input_folder, input_name)
+                gt_path = osp.join(gt_folder, gt_name)
+            paths.append(dict([(f'{input_key}_path', input_path), (f'{gt_key}_path', gt_path)]))
     return paths
 
 

@@ -74,9 +74,10 @@ version_info = ({})
 
 
 def get_version():
+    scope = {}
     with open(version_file, 'r') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
+        exec(compile(f.read(), version_file, 'exec'), scope)
+    return scope.get('__version__', '1.4.2')
 
 
 def make_cuda_ext(name, module, sources, sources_cuda=None):

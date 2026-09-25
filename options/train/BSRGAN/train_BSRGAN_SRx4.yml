@@ -1,0 +1,147 @@
+# general settings
+name: 903_BSRGAN_SRx4_LicensePlate
+model_type: SRGANModel
+scale: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: LicensePlate_BSRGAN_Train
+    type: BSRGANDataset
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    io_backend:
+      type: lmdb
+
+    scale: 4
+    gt_size: 48
+    use_hflip: false
+    use_rot: false
+
+    # data loader
+    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
+    batch_size_per_gpu: 64  # BSRGAN (RRDBNet 23 blocks) nặng hơn nhẹ model khác
+    dataset_enlarge_ratio: 1
+    prefetch_mode: ~
+    pin_memory: true
+
+  val:
+    name: LicensePlate_Val
+    type: PairedImageDataset
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
+    io_backend:
+      type: lmdb
+
+# network structures
+network_g:
+  type: BSRGANNet
+  in_nc: 3
+  out_nc: 3
+  nf: 64
+  nb: 23
+  gc: 32
+  sf: 4
+
+network_d:
+  type: UNetDiscriminatorSN
+  num_in_ch: 3
+  num_feat: 64
+  skip_connection: True
+
+# path
+path:
+  pretrain_network_g: experiments/pretrained_models/BSRGAN/BSRGAN.pth
+  param_key_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  ema_decay: 0.999
+  optim_g:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+  optim_d:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [20000, 32000]
+    gamma: 0.5
+
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+  # perceptual loss (VGG19)
+  perceptual_opt:
+    type: PerceptualLoss
+    layer_weights:
+      'conv1_2': 0.1
+      'conv2_2': 0.1
+      'conv3_4': 1
+      'conv4_4': 1
+      'conv5_4': 1
+    vgg_type: vgg19
+    use_input_norm: true
+    perceptual_weight: !!float 1.0
+    style_weight: 0
+    range_norm: false
+    criterion: l1
+  # gan loss
+  gan_opt:
+    type: GANLoss
+    gan_type: vanilla
+    real_label_val: 1.0
+    fake_label_val: 0.0
+    loss_weight: !!float 1e-1
+
+  net_d_iters: 1
+  net_d_init_iters: 0
+
+# validation settings
+val:
+  val_freq: !!float 3800
+  save_img: false
+  pbar: true
+
+  metrics:
+    psnr:
+      type: calculate_psnr_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 3800
+  use_tb_logger: true
+  wandb:
+    project: license_plate_sr
+    entity: anhlone3
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+# command
+# python basicsr/train.py -opt options/train/BSRGAN/train_BSRGAN_SRx4.yml

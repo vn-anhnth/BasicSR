@@ -185,6 +185,20 @@ def _ssim(img, img2):
     kernel = cv2.getGaussianKernel(11, 1.5)
     window = np.outer(kernel, kernel.transpose())
 
+    h, w = img.shape[:2]
+    if h < 11 or w < 11:
+        # Nếu ảnh nhỏ hơn kích thước cửa sổ Gaussian (11x11), dùng cùng công thức SSIM trên toàn ảnh
+        mu1 = img.mean()
+        mu2 = img2.mean()
+        mu1_sq = mu1**2
+        mu2_sq = mu2**2
+        mu1_mu2 = mu1 * mu2
+        sigma1_sq = ((img - mu1)**2).mean()
+        sigma2_sq = ((img2 - mu2)**2).mean()
+        sigma12 = ((img - mu1) * (img2 - mu2)).mean()
+        ssim_val = float(((2 * mu1_mu2 + c1) * (2 * sigma12 + c2)) / ((mu1_sq + mu2_sq + c1) * (sigma1_sq + sigma2_sq + c2)))
+        return ssim_val
+
     mu1 = cv2.filter2D(img, -1, window)[5:-5, 5:-5]  # valid mode for window size 11
     mu2 = cv2.filter2D(img2, -1, window)[5:-5, 5:-5]
     mu1_sq = mu1**2
@@ -212,6 +226,20 @@ def _ssim_pth(img, img2):
     """
     c1 = (0.01 * 255)**2
     c2 = (0.03 * 255)**2
+
+    h, w = img.shape[2:]
+    if h < 11 or w < 11:
+        mu1 = img.mean(dim=[2, 3], keepdim=True)
+        mu2 = img2.mean(dim=[2, 3], keepdim=True)
+        mu1_sq = mu1.pow(2)
+        mu2_sq = mu2.pow(2)
+        mu1_mu2 = mu1 * mu2
+        sigma1_sq = ((img - mu1).pow(2)).mean(dim=[2, 3], keepdim=True)
+        sigma2_sq = ((img2 - mu2).pow(2)).mean(dim=[2, 3], keepdim=True)
+        sigma12 = ((img - mu1) * (img2 - mu2)).mean(dim=[2, 3], keepdim=True)
+        cs_map = (2 * sigma12 + c2) / (sigma1_sq + sigma2_sq + c2)
+        ssim_map = ((2 * mu1_mu2 + c1) / (mu1_sq + mu2_sq + c1)) * cs_map
+        return ssim_map.mean([1, 2, 3])
 
     kernel = cv2.getGaussianKernel(11, 1.5)
     window = np.outer(kernel, kernel.transpose())

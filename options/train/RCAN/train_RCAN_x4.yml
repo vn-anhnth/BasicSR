@@ -1,0 +1,115 @@
+# general settings
+name: 202_RCAN_x4_LicensePlate
+model_type: SRModel
+scale: 4
+num_gpu: 2  # 2x Tesla T4 GPUs tren Kaggle (DDP)
+manual_seed: 10
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: LicensePlate_Train
+    type: PairedImageDataset
+    dataroot_gt: /kaggle/working/data/train_HR.lmdb
+    dataroot_lq: /kaggle/working/data/train_LR_x4.lmdb
+    io_backend:
+      type: lmdb
+
+    gt_size: 48
+    use_hflip: false
+    use_rot: false
+
+    # data loader
+    num_worker_per_gpu: 2  # Kaggle có 4 vCPU -> 2 workers per GPU
+    batch_size_per_gpu: 64  # 64 mỗi GPU -> Tổng effective batch = 128
+    dataset_enlarge_ratio: 1
+    prefetch_mode: cuda
+    pin_memory: true
+
+  val:
+    name: LicensePlate_Val
+    type: PairedImageDataset
+    dataroot_gt: /kaggle/working/data/val_HR.lmdb
+    dataroot_lq: /kaggle/working/data/val_LR_x4.lmdb
+    io_backend:
+      type: lmdb
+
+# network structures
+network_g:
+  type: RCAN
+  num_in_ch: 3
+  num_out_ch: 3
+  num_feat: 64
+  num_group: 10
+  num_block: 20
+  squeeze_factor: 16
+  upscale: 4
+  res_scale: 1
+  img_range: 255.
+  rgb_mean: [0.4488, 0.4371, 0.4040]
+
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  ema_decay: 0.999
+  optim_g:
+    type: Adam
+    lr: !!float 1e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [10000, 16000]
+    gamma: 0.5
+
+  total_iter: 19100  # 100 epochs tren 2 GPUs (24,468 images / batch 128 * 100 epochs ~ 19,100 iters)
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  save_img: false
+  pbar: true
+
+  metrics:
+    psnr:
+      type: calculate_psnr_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 1910  # Luu checkpoint moi 10 epochs (1,910 iters)
+  use_tb_logger: true
+  wandb:
+    project: license_plate_sr
+    entity: anhlone3
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+# command
+# Train 2 GPU tren Kaggle bang torchrun (DDP):
+# CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 basicsr/train.py -opt options/train/RCAN/train_RCAN_x4.yml --launcher pytorch

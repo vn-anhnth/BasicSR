@@ -1,8 +1,8 @@
 # general settings
-name: train_LDL_realworld_RRDB
+name: 010_LDL_Real_x4_LicensePlate
 model_type: RealESRGANModel
 scale: 4
-num_gpu: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
 # ----------------- options for synthesizing training data in RealESRGANModel ----------------- #
@@ -13,7 +13,7 @@ gan_gt_usm: False
 
 # the first degradation process
 resize_prob: [0.2, 0.7, 0.1]  # up, down, keep
-resize_range: [0.15, 1.5]
+resize_range: [0.6, 1.2]
 gaussian_noise_prob: 0.5
 noise_range: [1, 30]
 poisson_scale_range: [0.05, 3]
@@ -23,35 +23,35 @@ jpeg_range: [30, 95]
 # the second degradation process
 second_blur_prob: 0.8
 resize_prob2: [0.3, 0.4, 0.3]  # up, down, keep
-resize_range2: [0.3, 1.2]
+resize_range2: [0.7, 1.1]
 gaussian_noise_prob2: 0.5
 noise_range2: [1, 25]
 poisson_scale_range2: [0.05, 2.5]
 gray_noise_prob2: 0.4
 jpeg_range2: [30, 95]
 
-gt_size: 256
-queue_size: 180
+gt_size: 48
+queue_size: 192
 
 # dataset and data loader settings
 datasets:
   train:
-    name: DF2K+OST
+    name: LicensePlate_Train
     type: RealESRGANDataset
-    dataroot_gt: datasets/DF2K
-    meta_info: datasets/DF2K/meta_info/meta_info_DF2Kmultiscale+OST_sub.txt
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
     io_backend:
-      type: disk
+      type: lmdb
 
-    blur_kernel_size: 21
+    crop_pad_size: 96
+    blur_kernel_size: 15
     kernel_list: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
     kernel_prob: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
     sinc_prob: 0.1
-    blur_sigma: [0.2, 3]
+    blur_sigma: [0.2, 2.0]
     betag_range: [0.5, 4]
     betap_range: [1, 2]
 
-    blur_kernel_size2: 21
+    blur_kernel_size2: 15
     kernel_list2: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
     kernel_prob2: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
     sinc_prob2: 0.1
@@ -61,22 +61,24 @@ datasets:
 
     final_sinc_prob: 0.8
 
-    gt_size: 256
-    use_hflip: True
-    use_rot: False
+    gt_size: 48
+    use_hflip: false
+    use_rot: false
 
     # data loader
-    num_worker_per_gpu: 4
-    batch_size_per_gpu: 4
+    num_worker_per_gpu: 8  # Tối đa hóa hiệu năng CPU đa luồng trên Colab
+    batch_size_per_gpu: 64
     dataset_enlarge_ratio: 1
-    prefetch_mode: ~
+    prefetch_mode: cuda
+    pin_memory: true
 
   val:
-    name: RealWorld38
-    type: SingleImageDataset
-    dataroot_lq: datasets/RealWorld38/LR
+    name: LicensePlate_Val
+    type: PairedImageDataset
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
-      type: disk
+      type: lmdb
 
 # network structures
 network_g:
@@ -86,7 +88,7 @@ network_g:
   num_feat: 64
   num_block: 23
   num_grow_ch: 32
-
+  scale: 4
 
 network_d:
   type: UNetDiscriminatorSN
@@ -97,10 +99,11 @@ network_d:
 # path
 path:
   # use the pre-trained Real-ESRNet model
-  pretrain_network_g: experiments/pretrained_models/RealESRGAN/RealESRNet_x4plus.pth
+  pretrain_network_g: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments/007_RealESRNetx4plus_LicensePlate/models/net_g_latest.pth
   param_key_g: params_ema
   strict_load_g: true
   resume_state: ~
+  experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
 
 # training settings
 train:
@@ -118,10 +121,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [400000]
+    milestones: [20000, 32000]
     gamma: 0.5
 
-  total_iter: 400000
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,200 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -160,22 +163,38 @@ train:
   net_d_iters: 1
   net_d_init_iters: 0
 
-# Uncomment these for validation
 # validation settings
 val:
- val_freq: !!float 5e3
- save_img: True
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  save_img: false
+  pbar: true
+
+  metrics:
+    psnr:
+      type: calculate_psnr_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 4
+      test_y_channel: true
+      better: higher
 
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 5e3
+  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
   use_tb_logger: true
   wandb:
-    project: ~
+    project: license_plate_sr
+    entity: anhlone3
     resume_id: ~
 
 # dist training settings
 dist_params:
   backend: nccl
   port: 29500
+
+# command
+# python basicsr/train.py -opt options/train/LDL/train_LDL_Real_x4.yml
