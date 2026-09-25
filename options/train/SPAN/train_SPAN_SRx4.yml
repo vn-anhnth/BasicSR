@@ -1,7 +1,7 @@
 # general settings
-name: 931_ELAN_Light_SRx2_LicensePlate
+name: 905_SPAN_SRx4_LicensePlate
 model_type: SRModel
-scale: 2
+scale: 4
 num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
 
@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
@@ -20,45 +20,38 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 8
-    batch_size_per_gpu: 64
+    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
+    batch_size_per_gpu: 64  # RTX 3060 12GB
     dataset_enlarge_ratio: 1
-    prefetch_mode: cuda
+    prefetch_mode: ~
     pin_memory: true
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
       type: lmdb
 
 # network structures
 network_g:
-  type: ELAN
-  scale: 2
-  colors: 3
-  window_sizes: [4, 8, 16]
-  m_elan: 24
-  c_elan: 60
-  n_share: 1
-  r_expand: 2
-  rgb_range: 1.0
+  feature_channels: 48
+  type: SPAN
+  upscale: 4
 
 # path
 path:
   pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
-  experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
 
 # training settings
 train:
   ema_decay: 0.999
   optim_g:
     type: Adam
-    lr: !!float 2e-4
+    lr: !!float 5e-4
     weight_decay: 0
     betas: [0.9, 0.99]
 
@@ -78,19 +71,19 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  val_freq: !!float 3800  # Validate moi 10 epochs (3,800 iters)
   save_img: false
   pbar: true
 
   metrics:
     psnr:
       type: calculate_psnr_pt
-      crop_border: 2
+      crop_border: 4
       test_y_channel: true
       better: higher
     ssim:
       type: calculate_ssim_pt
-      crop_border: 2
+      crop_border: 4
       test_y_channel: true
       better: higher
 
@@ -110,4 +103,4 @@ dist_params:
   port: 29500
 
 # command
-# python basicsr/train.py -opt options/train/ELAN/train_ELAN_Light_SRx2.yml
+# python basicsr/train.py -opt options/train/SPAN/train_SPAN_SRx4.yml

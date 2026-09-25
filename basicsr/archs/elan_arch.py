@@ -239,7 +239,7 @@ class ELAN(nn.Module):
         mod_pad_h = (wsize - h % wsize) % wsize
         mod_pad_w = (wsize - w % wsize) % wsize
         if mod_pad_h != 0 or mod_pad_w != 0:
-            x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), 'reflect')
+            x = F.pad(x, (0, mod_pad_w, 0, mod_pad_h), 'replicate')
         return x
 
     def forward(self, x):

@@ -1,5 +1,5 @@
 # general settings
-name: 931_ELAN_Light_SRx2_LicensePlate
+name: 511_DAT_S_SRx2_LicensePlate
 model_type: SRModel
 scale: 2
 num_gpu: 1  # set num_gpu: 0 for cpu mode
@@ -21,7 +21,7 @@ datasets:
 
     # data loader
     num_worker_per_gpu: 8
-    batch_size_per_gpu: 64
+    batch_size_per_gpu: 32
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
     pin_memory: true
@@ -36,15 +36,17 @@ datasets:
 
 # network structures
 network_g:
-  type: ELAN
-  scale: 2
-  colors: 3
-  window_sizes: [4, 8, 16]
-  m_elan: 24
-  c_elan: 60
-  n_share: 1
-  r_expand: 2
-  rgb_range: 1.0
+  type: DAT
+  upscale: 2
+  in_chans: 3
+  img_size: 48
+  img_range: 1.0
+  split_size: [4, 4]
+  depth: [6, 6, 6, 6, 6, 6]
+  embed_dim: 180
+  num_heads: [6, 6, 6, 6, 6, 6]
+  expansion_factor: 2
+  resi_connection: '1conv'
 
 # path
 path:
@@ -64,10 +66,10 @@ train:
 
   scheduler:
     type: MultiStepLR
-    milestones: [20000, 32000]
+    milestones: [40000, 64000]
     gamma: 0.5
 
-  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,200 iters)
+  total_iter: 76000  # 100 epochs tren batch 32 (24,468 / 32 * 100 ~ 76,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -97,7 +99,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 7600  # Luu checkpoint moi 10 epochs (7,600 iters)
   use_tb_logger: true
   wandb:
     project: license_plate_sr
@@ -110,4 +112,4 @@ dist_params:
   port: 29500
 
 # command
-# python basicsr/train.py -opt options/train/ELAN/train_ELAN_Light_SRx2.yml
+# python basicsr/train.py -opt options/train/DAT/train_DAT_S_SRx2.yml
