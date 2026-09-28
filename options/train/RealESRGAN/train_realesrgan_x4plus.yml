@@ -8,6 +8,11 @@ manual_seed: 0
 # Turn off synthetic degradation in RealESRGANModel -> use paired training
 high_order_degradation: false
 
+# USM options
+l1_gt_usm: false
+percep_gt_usm: false
+gan_gt_usm: false
+
 # dataset and data loader settings
 datasets:
   train:
