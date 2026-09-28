@@ -1,69 +1,26 @@
 # general settings
 name: 007_RealESRNetx4plus_LicensePlate
-model_type: RealESRNetModel
+model_type: SRModel
 scale: 4
 num_gpu: 1  # set num_gpu: 0 for cpu mode
 manual_seed: 0
-
-# ----------------- options for synthesizing training data in RealESRNetModel ----------------- #
-gt_usm: True  # USM the ground-truth
-
-# the first degradation process
-resize_prob: [0.2, 0.7, 0.1]  # up, down, keep
-resize_range: [0.6, 1.2]
-gaussian_noise_prob: 0.5
-noise_range: [1, 30]
-poisson_scale_range: [0.05, 3]
-gray_noise_prob: 0.4
-jpeg_range: [30, 95]
-
-# the second degradation process
-second_blur_prob: 0.8
-resize_prob2: [0.3, 0.4, 0.3]  # up, down, keep
-resize_range2: [0.7, 1.1]
-gaussian_noise_prob2: 0.5
-noise_range2: [1, 25]
-poisson_scale_range2: [0.05, 2.5]
-gray_noise_prob2: 0.4
-jpeg_range2: [30, 95]
-
-gt_size: 48
-queue_size: 192
 
 # dataset and data loader settings
 datasets:
   train:
     name: LicensePlate_Train
-    type: RealESRGANDataset
+    type: PairedImageDataset
     dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
-
-    crop_pad_size: 96
-    blur_kernel_size: 15
-    kernel_list: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
-    kernel_prob: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
-    sinc_prob: 0.1
-    blur_sigma: [0.2, 2.0]
-    betag_range: [0.5, 4]
-    betap_range: [1, 2]
-
-    blur_kernel_size2: 15
-    kernel_list2: ['iso', 'aniso', 'generalized_iso', 'generalized_aniso', 'plateau_iso', 'plateau_aniso']
-    kernel_prob2: [0.45, 0.25, 0.12, 0.03, 0.12, 0.03]
-    sinc_prob2: 0.1
-    blur_sigma2: [0.2, 1.5]
-    betag_range2: [0.5, 4]
-    betap_range2: [1, 2]
-
-    final_sinc_prob: 0.8
 
     gt_size: 48
     use_hflip: false
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 8  # Tối đa hóa CPU đa luồng trên Colab
+    num_worker_per_gpu: 8  # Tối đa hóa hiệu năng GPU & CPU đa nhân trên Colab
     batch_size_per_gpu: 64
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
@@ -89,8 +46,7 @@ network_g:
 
 # path
 path:
-  pretrain_network_g: experiments/pretrained_models/RealESRNet_x4plus.pth
-  param_key_g: params_ema
+  pretrain_network_g: ~
   strict_load_g: true
   resume_state: ~
   experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
@@ -120,7 +76,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  val_freq: !!float 1e8  # Khong validate giua chung de tranh gian doan tren Colab
   save_img: false
   pbar: true
 
@@ -139,7 +95,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 1e8  # Chi luu checkpoint o cuoi cung (latest) de tiet kiem dung luong Drive
   use_tb_logger: true
   wandb:
     project: license_plate_sr
