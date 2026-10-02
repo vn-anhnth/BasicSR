@@ -60,10 +60,22 @@ def paired_random_crop(img_gts, img_lqs, gt_patch_size, scale, gt_path=None):
         h_gt, w_gt = img_gts[0].shape[0:2]
     lq_patch_size = gt_patch_size // scale
 
-    # Đảm bảo GT luôn có kích thước là bội số chính xác của LQ * scale
-    # Trong các tập ảnh thực tế (như biển số), kích thước có thể là số lẻ (vd 39x116 -> LQ 19x58 -> 19*2=38 != 39)
-    target_h_gt = h_lq * scale
-    target_w_gt = w_lq * scale
+    # Đảm bảo GT và LQ luôn có kích thước tương thích chính xác theo scale:
+    # 1. Chiều của LQ tối đa không vượt quá GT // scale
+    # 2. Chiều của GT luôn khớp chính xác = LQ * scale
+    max_h_lq = min(h_lq, h_gt // scale)
+    max_w_lq = min(w_lq, w_gt // scale)
+    target_h_gt = max_h_lq * scale
+    target_w_gt = max_w_lq * scale
+
+    if h_lq != max_h_lq or w_lq != max_w_lq:
+        if input_type == 'Tensor':
+            img_lqs = [v[:, :, :max_h_lq, :max_w_lq] for v in img_lqs]
+            h_lq, w_lq = img_lqs[0].size()[-2:]
+        else:
+            img_lqs = [v[:max_h_lq, :max_w_lq, ...] for v in img_lqs]
+            h_lq, w_lq = img_lqs[0].shape[0:2]
+
     if h_gt != target_h_gt or w_gt != target_w_gt:
         if input_type == 'Tensor':
             img_gts = [v[:, :, :target_h_gt, :target_w_gt] for v in img_gts]
