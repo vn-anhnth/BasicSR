@@ -1,0 +1,115 @@
+# general settings
+name: 501_DAT_SRx2_LicensePlate
+model_type: SRModel
+scale: 2
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: LicensePlate_Train
+    type: PairedImageDataset
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    io_backend:
+      type: lmdb
+
+    gt_size: 48
+    use_hflip: false
+    use_rot: false
+
+    # data loader
+    num_worker_per_gpu: 8  # Tối đa hóa CPU đa luồng trên Colab
+    batch_size_per_gpu: 64
+    dataset_enlarge_ratio: 1
+    prefetch_mode: cuda
+    pin_memory: true
+
+  val:
+    name: LicensePlate_Val
+    type: PairedImageDataset
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    io_backend:
+      type: lmdb
+
+# network structures
+network_g:
+  type: DAT
+  upscale: 2
+  in_chans: 3
+  img_size: 48
+  img_range: 1.
+  depth: [6, 6, 6, 6]
+  embed_dim: 144
+  num_heads: [6, 6, 6, 6]
+  expansion_factor: 2
+  resi_connection: '1conv'
+  split_size: [4, 4]
+
+# path
+path:
+  pretrain_network_g: ~
+  strict_load_g: true
+  resume_state: ~
+  experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
+
+# training settings
+train:
+  ema_decay: 0.999
+  optim_g:
+    type: Adam
+    lr: !!float 2e-4
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [20000, 32000]
+    gamma: 0.5
+
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: !!float 1e8  # Khong validate giua chung, chi validate 1 lan duy nhat o epoch cuoi cung (latest)
+  save_img: false
+  pbar: true
+
+  metrics:
+    psnr:
+      type: calculate_psnr_pt
+      crop_border: 2
+      test_y_channel: true
+      better: higher
+    ssim:
+      type: calculate_ssim_pt
+      crop_border: 2
+      test_y_channel: true
+      better: higher
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 3800
+  use_tb_logger: true
+  wandb:
+    project: license_plate_sr
+    entity: anhlone3
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
+
+# command
+# python basicsr/train.py -opt options/train/DAT/train_DAT_SRx2.yml
