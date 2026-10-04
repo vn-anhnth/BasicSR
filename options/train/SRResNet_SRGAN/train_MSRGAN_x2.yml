@@ -108,7 +108,7 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 3800  # Validate moi 10 epochs (3,800 iters)
+  val_freq: !!float 1e8  # Chỉ validate ở cuối cùng (tránh gián đoạn và tiết kiệm thời gian)
   save_img: false
   pbar: true
 
@@ -127,7 +127,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint dinh ky moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 1e8  # Chỉ lưu net_g_latest và checkpoint cuối cùng, không lưu checkpoint rác
   use_tb_logger: true
   wandb:
     project: license_plate_sr
