@@ -8,62 +8,31 @@ manual_seed: 0
 # dataset and data loader settings
 datasets:
   train:
-    name: DIV2K
+    name: LicensePlate_Train
     type: PairedImageDataset
-    # It is strongly recommended to use lmdb for faster IO speed, especially for small networks
-    dataroot_gt: datasets/DF2K/DIV2K_train_HR_sub.lmdb
-    dataroot_lq: datasets/DF2K/DIV2K_train_LR_bicubic_X4_sub.lmdb
-    meta_info_file: basicsr/data/meta_info/meta_info_DIV2K800sub_GT.txt
-    filename_tmpl: '{}'
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x4.lmdb
     io_backend:
       type: lmdb
 
-    gt_size: 256
-    use_hflip: true
-    use_rot: true
+    gt_size: 48
+    use_hflip: false
+    use_rot: false
 
     # data loader
-    num_worker_per_gpu: 12
-    batch_size_per_gpu: 32
-    dataset_enlarge_ratio: 10
+    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
+    batch_size_per_gpu: 64  # RTX 3060 12GB (ECBSR rất nhẹ)
+    dataset_enlarge_ratio: 1
     prefetch_mode: ~
+    pin_memory: true
 
-  # we use multiple validation datasets. The SR benchmark datasets can be download from: https://cv.snu.ac.kr/research/EDSR/benchmark.tar
   val:
-    name: Set5
+    name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Set5/HR
-    dataroot_lq: datasets/benchmark/Set5/LR_bicubic/X4
-    filename_tmpl: '{}x4'
+    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
+    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x4.lmdb
     io_backend:
-      type: disk
-
-  val_2:
-    name: Set14
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Set14/HR
-    dataroot_lq: datasets/benchmark/Set14/LR_bicubic/X4
-    filename_tmpl: '{}x4'
-    io_backend:
-      type: disk
-
-  val_3:
-    name: B100
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/B100/HR
-    dataroot_lq: datasets/benchmark/B100/LR_bicubic/X4
-    filename_tmpl: '{}x4'
-    io_backend:
-      type: disk
-
-  val_4:
-    name: Urban100
-    type: PairedImageDataset
-    dataroot_gt: datasets/benchmark/Urban100/HR
-    dataroot_lq: datasets/benchmark/Urban100/LR_bicubic/X4
-    filename_tmpl: '{}x4'
-    io_backend:
-      type: disk
+      type: lmdb
 
 # network structures
 network_g:
@@ -72,7 +41,7 @@ network_g:
   num_out_ch: 3
   num_block: 4
   num_channel: 16
-  with_idt: False
+  with_idt: false
   act_type: prelu
   scale: 4
 
@@ -87,16 +56,16 @@ train:
   ema_decay: 0
   optim_g:
     type: Adam
-    lr: !!float 5e-4
+    lr: !!float 1e-3
     weight_decay: 0
     betas: [0.9, 0.99]
 
   scheduler:
     type: MultiStepLR
-    milestones: [1600000]
-    gamma: 1
+    milestones: [20000, 32000]
+    gamma: 0.5
 
-  total_iter: 1600000
+  total_iter: 38000  # 100 epochs (24,468 images / batch 64 * 100 epochs ~ 38,000 iters)
   warmup_iter: -1  # no warm up
 
   # losses
@@ -107,18 +76,18 @@ train:
 
 # validation settings
 val:
-  val_freq: !!float 1600  # the same as the original setting. # TODO: Can be larger
+  val_freq: !!float 3800
   save_img: false
-  pbar: False
+  pbar: true
 
   metrics:
     psnr:
-      type: calculate_psnr
+      type: calculate_psnr_pt
       crop_border: 4
       test_y_channel: true
       better: higher  # the higher, the better. Default: higher
     ssim:
-      type: calculate_ssim
+      type: calculate_ssim_pt
       crop_border: 4
       test_y_channel: true
       better: higher  # the higher, the better. Default: higher
@@ -126,13 +95,17 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 1600
+  save_checkpoint_freq: !!float 3800
   use_tb_logger: true
   wandb:
-    project: ~
+    project: license_plate_sr
+    entity: anhlone3
     resume_id: ~
 
 # dist training settings
 dist_params:
   backend: nccl
   port: 29500
+
+# command
+# python basicsr/train.py -opt options/train/ECBSR/train_ECBSR_x4_m4c16_prelu_RGB.yml

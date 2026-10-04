@@ -13,8 +13,10 @@ def filter2D(img, kernel):
     """
     k = kernel.size(-1)
     b, c, h, w = img.size()
+    pad = k // 2
     if k % 2 == 1:
-        img = F.pad(img, (k // 2, k // 2, k // 2, k // 2), mode='reflect')
+        pad_mode = 'reflect' if (h > pad and w > pad) else 'replicate'
+        img = F.pad(img, (pad, pad, pad, pad), mode=pad_mode)
     else:
         raise ValueError('Wrong kernel size')
 

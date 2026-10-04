@@ -129,6 +129,7 @@ def init_wandb_logger(opt):
     logger = get_root_logger()
 
     project = opt['logger']['wandb']['project']
+    entity = opt['logger']['wandb'].get('entity')
     resume_id = opt['logger']['wandb'].get('resume_id')
     if resume_id:
         wandb_id = resume_id
@@ -138,9 +139,16 @@ def init_wandb_logger(opt):
         wandb_id = wandb.util.generate_id()
         resume = 'never'
 
-    wandb.init(id=wandb_id, resume=resume, name=opt['name'], config=opt, project=project, sync_tensorboard=True)
+    wandb.init(
+        id=wandb_id,
+        resume=resume,
+        name=opt['name'],
+        config=opt,
+        project=project,
+        entity=entity,
+        sync_tensorboard=True)
 
-    logger.info(f'Use wandb logger with id={wandb_id}; project={project}.')
+    logger.info(f'Use wandb logger with id={wandb_id}; entity={entity}; project={project}.')
 
 
 def get_root_logger(logger_name='basicsr', log_level=logging.INFO, log_file=None):

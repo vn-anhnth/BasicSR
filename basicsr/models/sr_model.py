@@ -1,4 +1,5 @@
 import torch
+from torch.nn import functional as F
 from collections import OrderedDict
 from os import path as osp
 from tqdm import tqdm
@@ -119,15 +120,29 @@ class SRModel(BaseModel):
             self.model_ema(decay=self.ema_decay)
 
     def test(self):
-        if hasattr(self, 'net_g_ema'):
-            self.net_g_ema.eval()
-            with torch.no_grad():
-                self.output = self.net_g_ema(self.lq)
+        # Pad to multiple of 2 or 4 if net_g uses pixel_unshuffle (e.g. RRDBNet scale 2 or 1)
+        scale = self.opt.get('scale', 1)
+        _, _, h, w = self.lq.size()
+        pad_h = (scale - h % scale) % scale
+        pad_w = (scale - w % scale) % scale
+        if pad_h > 0 or pad_w > 0:
+            lq = F.pad(self.lq, (0, pad_w, 0, pad_h), mode='replicate')
         else:
-            self.net_g.eval()
-            with torch.no_grad():
-                self.output = self.net_g(self.lq)
-            self.net_g.train()
+            lq = self.lq
+
+        net_g = self.net_g_ema if hasattr(self, 'net_g_ema') else self.net_g
+        net_g.eval()
+        with torch.no_grad():
+            output = net_g(lq)
+        if not hasattr(self, 'net_g_ema'):
+            net_g.train()
+
+        # Crop back to original scale size
+        if pad_h > 0 or pad_w > 0:
+            out_h, out_w = h * scale, w * scale
+            self.output = output[:, :, :out_h, :out_w]
+        else:
+            self.output = output
 
     def test_selfensemble(self):
         # TODO: to be tested
@@ -205,19 +220,8 @@ class SRModel(BaseModel):
             self.test()
 
             visuals = self.get_current_visuals()
-            sr_img = tensor2img([visuals['result']])
-            metric_data['img'] = sr_img
-            if 'gt' in visuals:
-                gt_img = tensor2img([visuals['gt']])
-                metric_data['img2'] = gt_img
-                del self.gt
-
-            # tentative for out of GPU memory
-            del self.lq
-            del self.output
-            torch.cuda.empty_cache()
-
             if save_img:
+                sr_img = tensor2img([visuals['result']])
                 if self.opt['is_train']:
                     save_img_path = osp.join(self.opt['path']['visualization'], img_name,
                                              f'{img_name}_{current_iter}.png')
@@ -233,7 +237,23 @@ class SRModel(BaseModel):
             if with_metrics:
                 # calculate metrics
                 for name, opt_ in self.opt['val']['metrics'].items():
-                    self.metric_results[name] += calculate_metric(metric_data, opt_)
+                    m_type = opt_.get('type', '')
+                    if m_type.endswith('_pt'):
+                        res_pt = calculate_metric({'img': self.output, 'img2': self.gt}, opt_)
+                        if isinstance(res_pt, torch.Tensor):
+                            res_pt = res_pt.mean().item()
+                        self.metric_results[name] += res_pt
+                    else:
+                        if 'img' not in metric_data or metric_data['img'] is None:
+                            metric_data['img'] = tensor2img([visuals['result']])
+                            if 'gt' in visuals:
+                                metric_data['img2'] = tensor2img([visuals['gt']])
+                        self.metric_results[name] += calculate_metric(metric_data, opt_)
+
+            if 'gt' in visuals:
+                del self.gt
+            del self.lq
+            del self.output
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')
