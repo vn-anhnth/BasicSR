@@ -54,7 +54,7 @@ network_d:
 
 # path
 path:
-  pretrain_network_g: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments/002_MSRResNet_x2_LicensePlate/models/net_g_latest.pth
+  pretrain_network_g: /content/BasicSR/experiments/002_MSRResNet_x2_LicensePlate/models/net_g_latest.pth
   strict_load_g: true
   resume_state: ~
   experiments_root: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments
