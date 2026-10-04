@@ -10,8 +10,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/train_HR_x2.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/train_LR_x1.lmdb
     io_backend:
       type: lmdb
 
@@ -29,8 +29,8 @@ datasets:
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/val_HR_x2.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/val_LR_x1.lmdb
     io_backend:
       type: lmdb
 
@@ -100,7 +100,7 @@ val:
 # logging settings
 logger:
   print_freq: 100
-  save_checkpoint_freq: !!float 3800  # Luu checkpoint moi 10 epochs (3,800 iters)
+  save_checkpoint_freq: !!float 1e8  # Chỉ lưu latest và checkpoint cuối cùng, không lưu rác nhiều file pth
   use_tb_logger: true
   wandb:
     project: license_plate_sr
