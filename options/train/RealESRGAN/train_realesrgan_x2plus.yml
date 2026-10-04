@@ -60,7 +60,7 @@ network_d:
 
 # path
 path:
-  pretrain_network_g: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/experiments/006_RealESRNetx2plus_LicensePlate/models/net_g_latest.pth
+  pretrain_network_g: /content/BasicSR/experiments/pretrained_models/RealESRGAN_x2plus.pth
   param_key_g: params_ema
   strict_load_g: true
   resume_state: ~
