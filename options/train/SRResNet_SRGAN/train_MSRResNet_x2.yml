@@ -13,8 +13,8 @@ datasets:
   train:
     name: LicensePlate_Train
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/train_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/train_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/train_HR_x2.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/train_LR_x1.lmdb
     io_backend:
       type: lmdb
 
@@ -23,17 +23,17 @@ datasets:
     use_rot: false
 
     # data loader
-    num_worker_per_gpu: 0  # Tránh lỗi Paging file trên Windows
-    batch_size_per_gpu: 64  # RTX 3060 12GB
+    num_worker_per_gpu: 8  # Colab CPU workers
+    batch_size_per_gpu: 64  # RTX GPU tren Colab
     dataset_enlarge_ratio: 1
-    prefetch_mode: ~
+    prefetch_mode: cuda
     pin_memory: true
 
   val:
     name: LicensePlate_Val
     type: PairedImageDataset
-    dataroot_gt: F:/license_plate_dataset/license_plate_sr/lmdb/val_HR.lmdb
-    dataroot_lq: F:/license_plate_dataset/license_plate_sr/lmdb/val_LR_x2.lmdb
+    dataroot_gt: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/val_HR_x2.lmdb
+    dataroot_lq: /content/drive/MyDrive/license_plate_dataset/license_plate_sr/lmdb_upscale_x2/val_LR_x1.lmdb
     io_backend:
       type: lmdb
 
